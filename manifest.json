@@ -1,0 +1,21 @@
+{
+  "short_name": "Nivora",
+  "name": "Nivora - App do Sono",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0F0F1E",
+  "theme_color": "#0044CC",
+  "display": "standalone",
+  "orientation": "portrait"
+}
