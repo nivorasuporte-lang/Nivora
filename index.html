@@ -8856,6 +8856,11 @@ document.addEventListener("DOMContentLoaded", function() {
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') closeInfoPage();
                 <script>
+            });
+        });
+    })();
+</script>
+  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
@@ -8864,10 +8869,5 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     }
   </script>
-            });
-        });
-    })();
-</script>
-
         </body>
 </html>
