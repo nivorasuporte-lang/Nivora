@@ -3,6 +3,7 @@
       "target": {
         "namespace": "android_app",
         "package_name": "io.github.nivorasuporte_lang.twa",
-        "sha256_cert_fingerprints": ["0C:7B:FC:4E:45:EC:B0:A5:10:C7:0F:F5:CE:B2:FD:76:22:53:8A:06:75:19:4B:87:C2:86:C5:01:E9:C6:FC:99"]
+        "sha256_cert_fingerprints": ["87:FF:E1:74:A1:C5:31:FC:78:DD:63:9A:32:4C:DA:31:0E:38:33:CF:20:1E:5A:71:1F:EE:BF:E2:89:7E:A1:F0"]
       }
     }]
+
