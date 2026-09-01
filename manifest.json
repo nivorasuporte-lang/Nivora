@@ -2,23 +2,17 @@
   "short_name": "Nivora",
   "name": "Nivora - Aplicativo do Sono",
   "description": "Pedido para envio de sono e solicitacao",
-  "start_url": "https://nivorasuporte-lang.github.io/Nivora/index.html",
+  "start_url": "/Nivora/index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://nivorasuporte-lang.github.io/Nivora/icone-512.png",
+      "src": "icone-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "https://nivorasuporte-lang.github.io/Nivora/icone-512-mascaravel.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "purpose": "any maskable"
     }
   ]
 }
