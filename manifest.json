@@ -2,7 +2,7 @@
   "short_name": "Nivora",
   "name": "Nivora - Aplicativo do Sono",
   "description": "Pedido para envio de sono e solicitação",
-  "start_url": "./index.html",
+  "start_url": "/Nivora/index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
@@ -11,14 +11,7 @@
     {
       "src": "icone-512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "icone-512-mascaravel.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
+      "sizes": "512x512"
     }
   ]
 }
