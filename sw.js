@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nivora-v5';
+const CACHE_NAME = 'nivora-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
