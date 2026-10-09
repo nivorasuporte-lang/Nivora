@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "io.github.nivorasuporte_lang.twa",
-        "sha256_cert_fingerprints": ["70:6C:7D:ED:19:7C:AC:A0:79:D2:FA:6B:1F:B5:F3:38:29:87:D9:AE:B8:19:75:A2:AE:ED:0A:C7:24:33:64:24"]
+        "package_name": "br.com.nivoora.twa",
+        "sha256_cert_fingerprints": ["B7:73:B6:39:A6:95:C9:63:C3:8E:53:C6:16:38:01:B7:54:D4:51:8C:91:2D:B6:30:8D:0D:D2:29:5D:6C:64:66"]
       }
     }]
