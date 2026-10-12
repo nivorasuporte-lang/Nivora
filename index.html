@@ -59,7 +59,12 @@
   --radius-s:10px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-
+html, body {
+  background-color: #000000 !important;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+      
 *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
 
 /* Comportamento de app nativo: textos, botões e cards da interface não são selecionáveis
