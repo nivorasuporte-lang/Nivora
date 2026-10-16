@@ -4,8 +4,6 @@
   <meta name="google-adsense-account" content="ca-pub-2479436560500692">
   <script type="module">
   // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js";
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -22,8 +20,16 @@
   };
 
   // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  // Firebase Analytics só carrega depois do "load" e em tempo ocioso: não disputa rede/CPU com a 1ª tela
+  const startFirebase = async () => {
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js");
+      const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-analytics.js");
+      getAnalytics(initializeApp(firebaseConfig));
+    } catch (err) { console.warn('Firebase Analytics indisponível:', err); }
+  };
+  const scheduleFirebase = () => ('requestIdleCallback' in window) ? requestIdleCallback(startFirebase, { timeout: 4000 }) : setTimeout(startFirebase, 2000);
+  if (document.readyState === 'complete') scheduleFirebase(); else window.addEventListener('load', scheduleFirebase);
 </script> 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -341,10 +347,12 @@ input, select, textarea{ font-family:inherit; }
 #ob-multi-input{ margin-top:34px; gap:13px; }
 #ob-multi-input .chip{ padding:14px 19px; font-size:15.5px; border-radius:14px; }
 
-/* pergunta "Como você se sente agora?" — emojis com mais presença visual */
-#ob-emoji-input .emoji-opt{ padding:16px 6px; }
-#ob-emoji-input .e{ font-size:32px; }
-#ob-emoji-input .t{ font-size:11.5px; }
+/* perguntas de avaliação do questionário ("Como foi sua última noite de sono?" e "Como você se sente agora?"):
+   mesmo padrão — título centralizado e seletor de 5 cards iguais, centralizado no espaço livre da tela */
+.ob-center .ob-eyebrow, .ob-center .ob-title, .ob-center .ob-sub{ text-align:center; }
+.ob-pick{ display:grid; grid-template-columns:1fr; gap:10px; margin:auto 0; padding:24px 0 9vh; }
+.ob-pick .emoji-opt{ flex-direction:row; justify-content:center; padding:17px 16px; }
+.ob-pick .emoji-opt .t{ font-size:16px; font-weight:600; color:var(--white); }
 
 .field-label{ font-size:13px; font-weight:700; color:var(--gray-1); margin:22px 0 4px; }
 .field-label:first-child{ margin-top:0; }
@@ -621,6 +629,37 @@ input, select, textarea{ font-family:inherit; }
   .ob-rise, .ob-final .ob-title, .ob-final .ob-sub, .ob-final .check-badge{ animation:none; }
 }
 
+/* spinner do splash (indicador de carregamento enquanto o app monta) */
+.splash-spinner{ position:absolute; left:50%; bottom:calc(12vh + env(safe-area-inset-bottom,0px)); width:26px; height:26px; margin-left:-13px; border-radius:50%; border:2.5px solid rgba(255,255,255,0.12); border-top-color:var(--blue-bright); animation:splashSpin .8s linear infinite; }
+@keyframes splashSpin{ to{ transform:rotate(360deg); } }
+
+/* tela de processamento: lua com brilho noturno sutil + mensagens que trocam com fade */
+.ob-processing{ position:relative; isolation:isolate; }
+.proc-glow{ position:absolute; left:50%; top:50%; width:260px; height:260px; margin:-150px 0 0 -130px; border-radius:50%; z-index:-1; pointer-events:none;
+  background:radial-gradient(circle, rgba(47,107,255,0.28) 0%, rgba(0,68,204,0.10) 45%, rgba(0,68,204,0) 70%); animation:procGlow 4.2s ease-in-out infinite; }
+@keyframes procGlow{ 0%,100%{ opacity:.55; transform:scale(.94); } 50%{ opacity:1; transform:scale(1.06); } }
+.processing-msg{ transition:opacity .28s ease, transform .28s ease; }
+.processing-msg.swap{ opacity:0; transform:translateY(5px); }
+@media (prefers-reduced-motion: reduce){ .proc-glow{ animation:none; opacity:.8; } }
+
+/* Política de Privacidade: logotipo no cabeçalho + tópicos numerados + link oficial no final */
+.priv-logo{ font-size:19px; }
+.priv-logo::before{ content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--blue); margin-right:7px; flex-shrink:0; position:relative; top:-1px; }
+.priv-title{ font-size:22px; font-weight:800; margin:0 0 8px; }
+.priv-sec{ padding:20px 0; border-bottom:1px solid var(--gray-3); }
+.priv-h{ display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+.priv-h h3{ font-size:16px; font-weight:700; margin:0; }
+.priv-sec p{ margin:0; }
+.priv-sec a{ color:var(--blue-bright); }
+.priv-link-wrap{ padding:28px 0 8px; text-align:center; }
+.priv-link{ display:inline-flex; align-items:center; gap:8px; padding:14px 22px; border-radius:100px; border:1px solid var(--blue-bright); background:var(--blue-soft); color:var(--white); font-weight:600; font-size:15px; text-decoration:none; }
+
+/* tela de carregamento: barra, texto e porcentagem um pouco maiores */
+.processing-msg{ font-size:17px; }
+.processing-pct{ font-size:28px; margin-top:12px; }
+.processing-bar-track{ height:22px; margin-top:16px; }
+.processing-bar-fill::after{ width:18px; height:18px; margin-top:-9px; right:-4px; }
+
 ::-webkit-scrollbar{ width:0; height:0; }
 </style>
 </head>
@@ -633,6 +672,7 @@ input, select, textarea{ font-family:inherit; }
   <div id="splash-screen">
     <img src="https://files.catbox.moe/otn3tf.png" alt="Nivora" onerror="this.style.display='none'; document.getElementById('splash-fallback').style.display='flex';">
     <div id="splash-fallback" class="fallback-logo" style="display:none;">NIVO<span class="accent">RA</span></div>
+    <div class="splash-spinner" role="status" aria-label="Carregando"></div>
   </div>
 
   <!-- ONBOARDING -->
@@ -1034,6 +1074,10 @@ const OB_QUESTIONS = [
   }
 ];
 
+/* Opções em texto. Os valores v (1–5) são os mesmos de antes, então o histórico não muda. */
+const OB_QUALITY = [{v:1,t:'Ruim'},{v:2,t:'Regular'},{v:3,t:'Boa'},{v:4,t:'Muito Boa'},{v:5,t:'Excelente'}];
+const OB_FEELING = [{v:1,t:'Muito cansado'},{v:2,t:'Cansado'},{v:3,t:'Normal'},{v:4,t:'Disposto'},{v:5,t:'Muito disposto'}];
+
 let obIndex = 0;
 let obDraft = {};
 
@@ -1089,15 +1133,12 @@ function renderObQuestion(skipAnim){
   } else if(q.type === 'time'){
     html += `<div class="ob-sub">Toque para escolher o horário.</div>
       <div class="time-picker-wrap"><input type="time" id="ob-time-input" value="${obDraft[q.key] || q.default}"></div>`;
-  } else if(q.type === 'stars'){
-    html += `<div class="ob-sub">Toque para avaliar.</div>
-      <div class="star-picker" id="ob-star-input" style="justify-content:flex-start; gap:16px; margin-top:10px;">
-        ${[1,2,3,4,5].map(n=>`<span class="star" data-val="${n}" style="font-size:40px;">★</span>`).join('')}
+  } else if(q.type === 'stars' || q.type === 'emoji'){
+    const isQ = q.type === 'stars';
+    html += `<div class="ob-sub">${isQ ? 'Toque para avaliar.' : 'Toque para escolher.'}</div>
+      <div class="ob-pick" id="${isQ ? 'ob-quality-input' : 'ob-emoji-input'}" role="radiogroup">
+        ${(isQ ? OB_QUALITY : OB_FEELING).map(o=>`<div class="emoji-opt" role="radio" aria-checked="false" data-val="${o.v}"><span class="t">${o.t}</span></div>`).join('')}
       </div>`;
-  } else if(q.type === 'emoji'){
-    html += `<div class="emoji-picker" id="ob-emoji-input" style="margin-top:10px;">
-      ${FEELING_OPTIONS.map(o=>`<div class="emoji-opt" data-val="${o.v}"><span class="e">${o.e}</span><span class="t">${o.t}</span></div>`).join('')}
-    </div>`;
   } else if(q.type === 'multi'){
     html += `<div class="ob-sub">Opcional — selecione quantas fizerem sentido.</div>
       <div class="chip-group" id="ob-multi-input" style="margin-top:8px;">
@@ -1106,6 +1147,7 @@ function renderObQuestion(skipAnim){
   }
 
   body.innerHTML = html;
+  body.classList.toggle('ob-center', q.type === 'stars' || q.type === 'emoji');
 
   /* entrada em cascata: título e opções sobem com fade-in, com pequeno atraso entre cada item.
      Só ao trocar de pergunta — selecionar uma opção NÃO refaz a animação. */
@@ -1131,29 +1173,19 @@ function renderObQuestion(skipAnim){
     contBtn.disabled = false;
     const input = document.getElementById('ob-time-input');
     input.addEventListener('input', ()=>{ obDraft[q.key] = input.value; contBtn.disabled = !input.value; });
-  } else if(q.type === 'stars'){
-    const starWrap = document.getElementById('ob-star-input');
-    const paintStars = ()=> starWrap.querySelectorAll('.star').forEach(st=> st.classList.toggle('active', parseInt(st.getAttribute('data-val')) <= (obDraft[q.key]||0)));
-    paintStars();
-    starWrap.querySelectorAll('.star').forEach(s=>{
-      s.addEventListener('click', ()=>{
-        obDraft[q.key] = parseInt(s.getAttribute('data-val'));
-        paintStars();
-        contBtn.disabled = false;
-      });
+  } else if(q.type === 'stars' || q.type === 'emoji'){
+    // mesma mecânica nas duas perguntas: um toque seleciona e libera o "Continuar" (valores 1–5 inalterados)
+    const pickWrap = document.getElementById(q.type === 'stars' ? 'ob-quality-input' : 'ob-emoji-input');
+    const paint = ()=> pickWrap.querySelectorAll('.emoji-opt').forEach(o=>{
+      const on = parseInt(o.getAttribute('data-val')) === obDraft[q.key];
+      o.classList.toggle('selected', on); o.setAttribute('aria-checked', on);
     });
-    contBtn.disabled = !obDraft[q.key];
-  } else if(q.type === 'emoji'){
-    const emojiWrap = document.getElementById('ob-emoji-input');
-    emojiWrap.querySelectorAll('.emoji-opt').forEach(o=>{
-      if(parseInt(o.getAttribute('data-val')) === obDraft[q.key]) o.classList.add('selected');
-      o.addEventListener('click', ()=>{
-        obDraft[q.key] = parseInt(o.getAttribute('data-val'));
-        emojiWrap.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('selected'));
-        o.classList.add('selected');
-        contBtn.disabled = false;
-      });
-    });
+    paint();
+    pickWrap.querySelectorAll('.emoji-opt').forEach(o=> o.addEventListener('click', ()=>{
+      obDraft[q.key] = parseInt(o.getAttribute('data-val'));
+      paint();
+      contBtn.disabled = false;
+    }));
     contBtn.disabled = !obDraft[q.key];
   } else if(q.type === 'multi'){
     if(!Array.isArray(obDraft[q.key])) obDraft[q.key] = [];
@@ -1181,18 +1213,24 @@ function renderObQuestion(skipAnim){
    ONBOARDING — TELA DE PROCESSAMENTO (entre a última pergunta e a conclusão)
 ============================================================ */
 const OB_PROCESSING_STEPS = [
-  { at:0,    msg:'Analisando suas respostas...' },
-  { at:1300, msg:'Montando o seu plano personalizado...' },
-  { at:2700, msg:'Tudo pronto!' }
+  { at:0,    msg:'Analisando perfil...' },
+  { at:0.28, msg:'Ajustando recomendações...' },
+  { at:0.62, msg:'Finalizando seu plano...' },
+  { at:0.94, msg:'Tudo pronto!' }
 ];
 function startObProcessing(){
   document.getElementById('ob-progress').classList.add('hidden');
   document.getElementById('ob-skip-btn').classList.add('hidden');
   const body = document.getElementById('ob-body');
   const contBtn = document.getElementById('ob-continue-btn');
-  contBtn.classList.add('hidden');
+  contBtn.classList.remove('hidden');
+  contBtn.disabled = true;      // visível desde o início, mas só ativa ao chegar em 100%
+  contBtn.textContent = 'Continuar';
+  contBtn.onclick = null;
+  body.classList.remove('ob-center');
   body.innerHTML = `
     <div class="ob-processing">
+      <span class="proc-glow"></span>
       <div class="processing-msg" id="ob-processing-msg">${OB_PROCESSING_STEPS[0].msg}</div>
       <div class="processing-pct" id="ob-processing-pct">0%</div>
       <div class="processing-bar-track"><div class="processing-bar-fill" id="ob-processing-fill"></div></div>
@@ -1200,28 +1238,34 @@ function startObProcessing(){
   const fill = document.getElementById('ob-processing-fill');
   const msgEl = document.getElementById('ob-processing-msg');
   const pctEl = document.getElementById('ob-processing-pct');
-  setTimeout(()=>{ msgEl.textContent = OB_PROCESSING_STEPS[1].msg; }, OB_PROCESSING_STEPS[1].at);
-  setTimeout(()=>{ msgEl.textContent = OB_PROCESSING_STEPS[2].msg; }, OB_PROCESSING_STEPS[2].at);
-  // progresso real 0%→100%: a barra e o número derivam do mesmo valor a cada frame,
-  // então nunca dessincronizam. Curva única e contínua (seno suavizado + parcela linear),
-  // sem os "tranques" que existiam entre um trecho e outro — o contador sobe de forma fluida.
-  const total = 4000;
+  let stepIdx = 0;
+  function setMsg(text){ // some com fade, troca o texto e reaparece
+    msgEl.classList.add('swap');
+    setTimeout(()=>{ msgEl.textContent = text; msgEl.classList.remove('swap'); }, 280);
+  }
+  // Curva de velocidade: progresso = p + a·sen(2πp)/(2π) → velocidade = 1 + a·cos(2πp).
+  // Rápida no início (p=0), mais lenta na metade (p=0,5 — "cálculo") e rápida de novo no fim (p=1); sempre crescente, sem tranco.
+  const total = 5600, a = 0.82;
   const t0 = performance.now();
   function tick(now){
     const elapsed = Math.max(0, Math.min(now - t0, total));
     const p = elapsed / total;
-    const eased = 0.6 * (0.5 - 0.5*Math.cos(Math.PI*p)) + 0.4 * p;
-    const pctExact = eased * 100;
-    fill.style.width = pctExact.toFixed(2) + '%'; // largura fracionada = movimento suave da barra
+    const pctExact = (p + a*Math.sin(2*Math.PI*p)/(2*Math.PI)) * 100;
+    fill.style.width = pctExact.toFixed(2) + '%';
     pctEl.textContent = Math.round(pctExact) + '%';
     fill.classList.toggle('has-tip', pctExact > 1.5);
-    if(elapsed < total) requestAnimationFrame(tick);
+    if(stepIdx + 1 < OB_PROCESSING_STEPS.length && p >= OB_PROCESSING_STEPS[stepIdx+1].at){ stepIdx++; setMsg(OB_PROCESSING_STEPS[stepIdx].msg); }
+    if(elapsed < total) requestAnimationFrame(tick); else finish();
+  }
+  let done = false;
+  function finish(){ // 100% + "Tudo pronto!": libera o Continuar
+    if(done) return; done = true;
+    fill.style.width = '100%'; pctEl.textContent = '100%';
+    contBtn.disabled = false;
+    contBtn.onclick = ()=> renderObFinal();
   }
   requestAnimationFrame(tick);
-  setTimeout(()=>{
-    contBtn.classList.remove('hidden');
-    renderObFinal();
-  }, 4000);
+  setTimeout(finish, total + 500); // garantia caso o rAF seja pausado
 }
 
 function renderObFinal(){
@@ -2196,7 +2240,12 @@ function handleMenuItem(key){
   if(key === 'sobre') return openDetail('Sobre Nivora', aboutHtml());
   if(key === 'como') return openDetail('Como funciona', howItWorksHtml());
   if(key === 'config') return openSettings();
-  if(key === 'privacidade') return openDetail('Política de Privacidade', privacyHtml());
+  if(key === 'privacidade'){
+    openDetail('Política de Privacidade', privacyHtml());
+    // cabeçalho = logotipo do app (mesmo estilo do topo do Início); o próximo openDetail() volta ao texto normal
+    document.getElementById('detail-title').innerHTML = '<span class="logo-wrap priv-logo" role="img" aria-label="Nivora — Política de Privacidade">NIVO<span class="accent">RA</span></span>';
+    return;
+  }
   if(key === 'termos') return openDetail('Termos e Condições', termsHtml());
   if(key === 'ajuda') return openDetail('Ajuda', helpHtml());
   if(key === 'feedback'){ openDetail('Feedback', feedbackHtml()); bindFeedbackEvents(); return; }
@@ -2266,24 +2315,35 @@ function howItWorksHtml(){
 }
 
 function privacyHtml(){
-  return `<div style="margin-bottom: 15px; text-align: center;">
-    <a href="https://nivoora.com.br/politica.html" target="_blank" style="color: #0044CC; font-weight: bold; text-decoration: underline;">
-      🌐 Abrir Política de Privacidade Oficial na Web
-    </a>
-  </div>
-  <p>O Nivora armazena os dados que você informa — respostas do questionário, check-ins diários e registros de sono — localmente neste dispositivo, usando o armazenamento local do navegador.</p>
-  <p>O aplicativo utiliza o Firebase Analytics para coletar estatísticas de uso agregadas e anônimas, com o objetivo de entender o funcionamento geral do produto.</p>
-  <p>O Nivora não vende, compartilha ou transfere seus dados pessoais de sono para terceiros.</p>
-  <p>Você pode apagar todos os seus dados a qualquer momento em Ajustes → Configurações → Apagar todos os dados.</p>`;
+  const secs = [
+    ['Dados coletados', 'Os dados que você informa: respostas do questionário, check-ins diários e registros de sono.'],
+    ['Armazenamento', 'O Nivora armazena esses dados localmente neste dispositivo, usando o armazenamento local do navegador.'],
+    ['Processamento e estatísticas', 'O aplicativo utiliza o Firebase Analytics para coletar estatísticas de uso agregadas e anônimas, com o objetivo de entender o funcionamento geral do produto.'],
+    ['Compartilhamento', 'O Nivora não vende, compartilha ou transfere seus dados pessoais de sono para terceiros.'],
+    ['Controle dos seus dados', 'Você pode apagar todos os seus dados a qualquer momento em Ajustes → Configurações → Apagar todos os dados.'],
+    ['Contato', 'Dúvidas sobre privacidade? Fale com a equipe pelo e-mail <a href="mailto:suportetakka@gmail.com">suportetakka@gmail.com</a>.']
+  ];
+  return `<h1 class="priv-title">Política de Privacidade</h1>
+  <p>Entenda como o Nivora trata as informações que você registra no aplicativo.</p>
+  ${secs.map((x,i)=>`<section class="priv-sec"><div class="priv-h"><h3>${i+1}. ${x[0]}</h3></div><p>${x[1]}</p></section>`).join('')}
+  <div class="priv-link-wrap">
+    <a class="priv-link" href="https://nivoora.com.br/politica.html" target="_blank" rel="noopener noreferrer">🌐 Abrir Política de Privacidade Oficial na Web</a>
+  </div>`;
 }
 
-
-
 function termsHtml(){
-  return `<p>Ao utilizar o Nivora, você concorda que o aplicativo é uma ferramenta de apoio à higiene do sono, com finalidade educativa e de acompanhamento pessoal.</p>
-  <p>O Nivora não substitui atendimento médico, psicológico ou qualquer forma de diagnóstico profissional. As informações e sugestões apresentadas não constituem tratamento, cura ou promessa de resultado.</p>
-  <p>Se você apresentar dificuldades persistentes relacionadas ao sono, procure orientação de um profissional de saúde qualificado.</p>
-  <p>O uso do aplicativo é de responsabilidade do usuário, que deve fornecer informações verdadeiras para que a personalização funcione corretamente.</p>`;
+  const secs = [
+    ['Uso do serviço', ['O Nivora é uma ferramenta de apoio à higiene do sono, com finalidade educativa e de acompanhamento pessoal.','Ao utilizar o aplicativo, você concorda com estes termos.']],
+    ['Responsabilidades do usuário', ['O uso do aplicativo é de responsabilidade do usuário, que deve fornecer informações verdadeiras para que a personalização funcione corretamente.','Use o Nivora de forma pessoal e lícita.']],
+    ['Isenção de responsabilidade médica', ['O Nivora não substitui atendimento médico, psicológico ou qualquer forma de diagnóstico profissional. As informações e sugestões apresentadas não constituem tratamento, cura ou promessa de resultado.','Se você apresentar dificuldades persistentes relacionadas ao sono, procure orientação de um profissional de saúde qualificado.']],
+    ['Dados e privacidade', ['O tratamento dos seus dados está descrito na Política de Privacidade, disponível no menu do aplicativo.']],
+    ['Propriedade intelectual', ['O nome Nivora, a identidade visual, os textos e o código do aplicativo pertencem aos seus responsáveis. Não é permitido copiar, modificar ou distribuir esse conteúdo sem autorização.']],
+    ['Alterações nos termos', ['Estes termos podem ser atualizados para refletir melhorias no aplicativo. Continuar usando o Nivora após uma atualização significa que você concorda com a nova versão.']],
+    ['Contato', ['Dúvidas sobre estes termos? Fale com a equipe pelo e-mail <a href="mailto:suportetakka@gmail.com">suportetakka@gmail.com</a>.']]
+  ];
+  return `<h1 class="priv-title">Termos e Condições</h1>
+  <p>Leia com atenção as regras de uso do Nivora.</p>
+  ${secs.map((x,i)=>`<section class="priv-sec"><div class="priv-h"><h3>${i+1}. ${x[0]}</h3></div>${x[1].map(t=>`<p>${t}</p>`).join('')}</section>`).join('')}`;
 }
 
 function helpHtml(){
@@ -2352,7 +2412,11 @@ document.addEventListener('selectstart', (e)=>{ if(!isEditableTarget(e.target)) 
 /* ============================================================
    BOOT
 ============================================================ */
-boot();
+/* O boot (montagem da interface) roda depois do 1º frame: splash + spinner pintam antes do trabalho pesado */
+let __booted = false;
+const __go = ()=>{ if(__booted) return; __booted = true; boot(); };
+requestAnimationFrame(()=> setTimeout(__go, 0));
+setTimeout(__go, 300); // garantia caso o rAF seja pausado (aba em segundo plano)
 </script>
 
 <script>
