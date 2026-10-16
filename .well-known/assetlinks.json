@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "br.com.nivoora.twa",
-        "sha256_cert_fingerprints": ["67:BC:12:1C:A1:0E:D5:B8:A9:62:20:19:D5:FB:4A:CF:D5:96:9D:BE:6F:3B:75:50:71:CC:24:1A:9E:FA:AA:41"]
+        "sha256_cert_fingerprints": ["B5:B0:8C:0E:98:7D:32:FD:BA:2B:0F:C5:06:8E:C3:03:FF:A2:C1:1B:03:A8:6F:EC:64:71:D5:D3:8F:ED:E0:5C"]
       }
     }]
